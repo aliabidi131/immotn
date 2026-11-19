@@ -1,0 +1,508 @@
+Dossier de conception : Application mobile
+de services immobiliers
+ISET – Projet de développement mobile cross-platform (Flutter & React Native) –
+Modélisation selon la méthode C4 – Durée : 10 semaines – Équipe : 3 à 4 étudiants
+1. Introduction
+1.1 Contexte
+Le marché immobilier tunisien repose encore largement sur le bouche-à-oreille, les
+groupes de réseaux sociaux et quelques sites web peu adaptés au mobile. Les particuliers
+comme les agences manquent d'un outil simple pour publier, rechercher et contacter
+rapidement.
+1.2 Objectif du projet
+Concevoir et développer une application mobile permettant la recherche, la consultation
+et la publication d'annonces immobilières (vente et location), avec géolocalisation,
+messagerie intégrée et notifications.
+L'application sera réalisée en deux versions distinctes partageant la même conception et
+le même backend :
+une version Flutter (Dart) ;
+une version React Native (JavaScript/TypeScript).
+1.3 Objectif ambitieux
+Publier l'application sur Google Play ou l'App Store. Toute la conception ci-dessous
+(sécurité, performance, conformité) tient compte de cette exigence.
+2. Analyse des besoins
+2.1 Acteurs
+Acteur Description
+Visiteur Utilisateur non connecté : peut parcourir les
+annonces.
+Dossier de conception : Application mobile de services immobiliers
+Page 1 of 14
+2.2 Exigences fonctionnelles
+Acteur Description
+Utilisateur inscrit Peut rechercher, mettre en favoris, contacter,
+publier.
+Annonceur (propriétaire / agence) Utilisateur inscrit qui publie et gère ses annonces.
+Administrateur Modère les annonces et les utilisateurs signalés.
+Services externes Cartographie, notifications push, stockage
+d'images.
+Réf. Exigence Priorité
+F1 Inscription, connexion, déconnexion,
+réinitialisation du mot de passe (email, Google)
+Haute
+F2 Gestion du profil (nom, photo, téléphone, type de
+compte)
+Haute
+F3 Recherche d'annonces avec filtres : prix,
+localisation, type de bien, surface, nombre de
+pièces, vente/location
+Haute
+F4 Consultation du détail d'une annonce avec galerie
+de photos
+Haute
+F5 Publication, modification, suppression d'une
+annonce avec photos
+Haute
+F6 Localisation des biens sur carte et recherche «
+autour de moi »
+Haute
+F7 Messagerie intégrée entre utilisateurs (par
+annonce)
+Haute
+F8 Gestion des favoris Moyenne
+F9 Notifications push (nouveau message, nouvelle
+annonce correspondant à une recherche
+sauvegardée)
+Moyenne
+F10 Sauvegarde de recherches et alertes Moyenne
+F11 Signalement d'annonces, modération par
+l'administrateur
+Moyenne
+Dossier de conception : Application mobile de services immobiliers
+Page 2 of 14
+2.3 Exigences non fonctionnelles
+3. Cas d'utilisation principaux
+Réf. Exigence Priorité
+F12 Partage d'une annonce, appel direct de l'annonceur Basse
+F13 Support du français et de l'arabe (RTL), option
+anglais
+Basse
+Catégorie Exigence
+Performance Liste d'annonces affichée en moins de 2 s sur 4G ;
+pagination ; images compressées et mises en
+cache
+Sécurité Authentification forte, règles d'accès par
+utilisateur, HTTPS uniquement, validation des
+entrées
+Disponibilité Backend managé avec disponibilité supérieure à 99
+%
+Utilisabilité Parcours de recherche en 3 écrans maximum ;
+respect des guidelines Material Design et Human
+Interface
+Compatibilité Android 8+ et iOS 14+
+Confidentialité Consentement explicite, politique de
+confidentialité, suppression de compte (exigée par
+les stores)
+Maintenabilité Architecture en couches, code documenté, tests
+automatisés
+Hors-ligne Consultation des favoris et des dernières
+annonces sans connexion
+Cas d'utilisation Acteur Scénario nominal
+S'inscrire Visiteur Saisit email et mot de passe, valide, le
+compte est créé et le profil initialisé
+Dossier de conception : Application mobile de services immobiliers
+Page 3 of 14
+4. Conception selon le modèle C4
+Le modèle C4 décrit le système à quatre niveaux de détail : Contexte, Conteneurs,
+Composants et Code. Les diagrammes correspondants doivent être dessinés avec un
+outil tel que Structurizr, draw.io ou Mermaid ; les tableaux ci-dessous fournissent le
+contenu exact à représenter.
+4.1 Niveau 1 : Diagramme de contexte du système
+Système central : Application « ImmoTN » (nom provisoire), permettant de rechercher,
+publier et discuter autour d'annonces immobilières.
+Cas d'utilisation Acteur Scénario nominal
+Rechercher un bien Visiteur /
+Utilisateur
+Choisit des filtres, consulte la liste ou la
+carte, ouvre une annonce
+Publier une annonce Annonceur Remplit le formulaire, ajoute des photos,
+place le bien sur la carte, publie
+Contacter un
+annonceur
+Utilisateur Ouvre la conversation depuis l'annonce,
+envoie un message, l'annonceur reçoit une
+notification
+Gérer les favoris Utilisateur Ajoute ou retire une annonce, consulte la
+liste dans l'onglet Favoris
+Modérer Administrateur Consulte les signalements, masque ou
+supprime une annonce
+Élément Type Description Relation avec le
+système
+Visiteur Personne Parcourt les annonces
+sans compte
+Consulte les
+annonces
+Utilisateur / Annonceur Personne Recherche, publie,
+échange
+Utilise l'application
+mobile
+Administrateur Personne Modère le contenu Utilise le panneau
+d'administration
+Service de cartographie
+(Google Maps ou
+OpenStreetMap)
+Système
+externe
+Affichage des cartes,
+géocodage des
+adresses
+Fournit les cartes et
+coordonnées
+Dossier de conception : Application mobile de services immobiliers
+Page 4 of 14
+4.2 Niveau 2 : Diagramme de conteneurs
+Élément Type Description Relation avec le
+système
+Service de notifications
+(Firebase Cloud
+Messaging / APNs)
+Système
+externe
+Envoi de notifications
+push
+Délivre les
+notifications aux
+appareils
+Fournisseur d'identité
+(Google Sign-In)
+Système
+externe
+Connexion tierce Authentifie
+l'utilisateur
+Services email Système
+externe
+Vérification d'email,
+réinitialisation
+Envoie les emails
+transactionnels
+Conteneur Technologie Responsabilité Communication
+Application mobile
+Flutter
+Flutter / Dart Interface utilisateur,
+logique de
+présentation, cache
+local
+HTTPS vers le
+backend
+Application mobile
+React Native
+React Native /
+TypeScript
+Mêmes fonctionnalités
+que la version Flutter
+HTTPS vers le
+backend
+Backend (API) Firebase (Auth,
+Cloud Functions) ou
+Node.js / Express
+Authentification,
+règles métier,
+validation,
+déclenchement des
+notifications
+HTTPS/REST ou SDK
+Base de données Cloud Firestore (ou
+PostgreSQL avec
+PostGIS)
+Stockage des
+utilisateurs, annonces,
+conversations, favoris
+Accès par le
+backend et les SDK
+sécurisés
+Stockage de
+fichiers
+Firebase Storage
+(ou S3)
+Photos des annonces
+et des profils
+URLs signées
+Panneau
+d'administration
+Application web
+(React ou Flutter
+Web)
+Modération,
+statistiques
+HTTPS vers le
+backend
+Base locale mobile SQLite / Hive /
+AsyncStorage
+Cache hors-ligne,
+favoris, brouillons
+Interne à
+l'application
+Dossier de conception : Application mobile de services immobiliers
+Page 5 of 14
+Choix recommandé : utiliser Firebase comme backend commun aux deux applications.
+Cela évite de développer deux fois la logique serveur, accélère le développement (10
+semaines) et fournit nativement l'authentification, le temps réel pour la messagerie et les
+notifications. Une alternative est un backend Node.js avec PostgreSQL/PostGIS pour les
+requêtes géographiques avancées.
+4.3 Niveau 3 : Diagramme de composants
+a) Application mobile (identique en logique pour Flutter et React Native)
+Composant Rôle
+Module Authentification Écrans d'inscription, connexion, gestion de session
+et du jeton
+Module Recherche Barre de recherche, filtres, liste paginée, vue carte
+Module Détail d'annonce Galerie photos, informations, carte, boutons
+contact et favori
+Module Publication Formulaire en étapes, sélection et compression
+des photos, choix de la position
+Module Carte et Géolocalisation Intégration cartographique, permission de
+localisation, recherche par rayon
+Module Messagerie Liste des conversations, chat en temps réel,
+indicateurs de lecture
+Module Favoris Ajout, retrait, synchronisation et cache local
+Module Profil Édition du profil, mes annonces, paramètres,
+suppression du compte
+Module Notifications Enregistrement du jeton d'appareil, réception,
+navigation vers l'écran concerné
+Couche Services (API client) Appels au backend, gestion des erreurs et des
+tentatives
+Couche Stockage local Cache et persistance hors-ligne
+Gestion d'état Flutter : Provider, Riverpod ou Bloc ; React Native :
+Redux Toolkit, Zustand ou React Query
+Dossier de conception : Application mobile de services immobiliers
+Page 6 of 14
+b) Backend
+4.4 Niveau 4 : Code (modèle de données)
+Le niveau 4 est facultatif en C4 ; il est ici illustré par le modèle de données et les classes
+principales.
+Composant Rôle
+Service d'authentification Création de compte, vérification email, jetons
+Service Annonces CRUD des annonces, validation, recherche filtrée,
+pagination
+Service Géolocalisation Calcul des distances, requêtes par geohash ou
+PostGIS
+Service Messagerie Conversations, messages, droits d'accès
+Service Favoris Gestion des favoris par utilisateur
+Service Notifications Envoi de notifications push via FCM
+Service Médias Upload, redimensionnement, génération de
+miniatures
+Service Modération Signalements, masquage, bannissement
+Règles de sécurité Contrôle d'accès aux données selon l'utilisateur
+Entité Attributs principaux
+Utilisateur id, nom, email, téléphone, photoUrl, rôle (utilisateur,
+agence, admin), dateCréation, jetonNotification
+Annonce id, titre, description, type de transaction (vente,
+location), type de bien (appartement, villa, terrain,
+local, etc.), prix, surface, nombrePièces, adresse,
+ville, latitude, longitude, geohash, photos[], statut
+(active, vendue, masquée), propriétaireId,
+dateCréation
+Conversation id, annonceId, participants[], dernierMessage,
+dateMiseAJour
+Message id, conversationId, expéditeurId, contenu, date, lu
+Favori id, utilisateurId, annonceId, date
+Dossier de conception : Application mobile de services immobiliers
+Page 7 of 14
+Relations : un Utilisateur possède plusieurs Annonces ; une Annonce peut avoir plusieurs
+Conversations et plusieurs Favoris ; une Conversation contient plusieurs Messages.
+5. Choix technologiques
+Outils communs : Git et GitHub (branches par fonctionnalité, pull requests), Figma pour
+les maquettes, Firebase Console, Postman, GitHub Actions pour l'intégration continue.
+6. Interface utilisateur
+6.1 Arborescence de navigation
+Accueil : barre de recherche, annonces récentes, catégories
+Recherche : liste et carte, filtres
+Entité Attributs principaux
+RechercheSauvegardée id, utilisateurId, filtres, alerteActive
+Signalement id, annonceId, utilisateurId, motif, statut
+Domaine Flutter React Native
+Langage Dart TypeScript
+Navigation go_router ou Navigator 2 React Navigation
+État Riverpod / Bloc Redux Toolkit / Zustand
+Carte google_maps_flutter ou
+flutter_map
+react-native-maps
+Géolocalisation geolocator expo-location ou react-nativegeolocation
+Backend firebase_core, cloud_firestore,
+firebase_auth
+@react-native-firebase/*
+Notifications firebase_messaging @react-native-firebase/messaging
+Images image_picker,
+cached_network_image
+react-native-image-picker, reactnative-fast-image
+Tests flutter_test, integration_test Jest, React Native Testing Library,
+Detox
+Dossier de conception : Application mobile de services immobiliers
+Page 8 of 14
+Publier : formulaire d'annonce
+Messages : conversations
+Profil : mes annonces, favoris, paramètres
+6.2 Écrans principaux à maquetter
+1. Écran de démarrage et onboarding
+2. Connexion et inscription
+3. Accueil
+4. Résultats de recherche (liste et carte) et panneau de filtres
+5. Détail d'une annonce
+6. Publication d'une annonce (en 4 étapes : informations, photos, localisation,
+confirmation)
+7. Liste des conversations et écran de chat
+8. Favoris
+9. Profil et paramètres
+Les maquettes doivent être réalisées sur Figma avant le début du développement
+(semaine 2).
+7. Interface de programmation (principaux points d'accès)
+Si un backend REST est utilisé (équivalents en SDK avec Firebase) :
+Méthode Route Description
+POST /auth/register Créer un compte
+POST /auth/login Se connecter
+GET /users/me Récupérer son profil
+PUT /users/me Modifier son profil
+GET /listings Rechercher avec filtres et pagination
+GET /listings/:id Détail d'une annonce
+POST /listings Publier une annonce
+PUT /listings/:id Modifier une annonce
+DELETE /listings/:id Supprimer une annonce
+GET /listings/nearby?lat=&lng=&radius= Recherche autour d'une position
+Dossier de conception : Application mobile de services immobiliers
+Page 9 of 14
+8. Sécurité et conformité
+Authentification par jeton ; mots de passe jamais stockés en clair.
+Règles d'accès : seul le propriétaire modifie ou supprime son annonce ; seuls les
+participants lisent une conversation.
+Validation des données côté client et côté serveur ; limitation du nombre de requêtes.
+Communications en HTTPS uniquement ; clés d'API restreintes par application.
+Compression et vérification des images téléversées.
+Politique de confidentialité, conditions d'utilisation, possibilité de supprimer son
+compte et ses données (obligatoire pour Google Play et l'App Store).
+Les numéros de téléphone ne sont affichés qu'aux utilisateurs connectés.
+9. Stratégie de tests et qualité
+Méthode Route Description
+POST /favorites/:listingId Ajouter aux favoris
+DELETE /favorites/:listingId Retirer des favoris
+GET /conversations Lister ses conversations
+POST /conversations/:id/messages Envoyer un message
+POST /reports Signaler une annonce
+Type de test Outil Objectif
+Tests unitaires flutter_test / Jest Logique métier, validations,
+formatage
+Tests de widgets /
+composants
+flutter_test / Testing
+Library
+Écrans et formulaires
+Tests d'intégration integration_test / Detox Parcours complets (inscription,
+publication, message)
+Tests manuels Appareils réels Android
+et iOS
+Ergonomie, géolocalisation,
+notifications
+Tests de charge légers Outils Firebase Vérification des quotas
+Dossier de conception : Application mobile de services immobiliers
+Page 10 of 14
+Objectif de couverture : au moins 60 % de la logique métier. Intégration continue avec
+GitHub Actions pour lancer l'analyse statique et les tests à chaque pull request.
+10. Planning sur 10 semaines
+Conseil : les deux versions doivent avancer en parallèle. Une répartition efficace consiste
+à développer chaque fonctionnalité d'abord dans une version, puis à la porter dans l'autre
+en réutilisant la même conception.
+11. Organisation de l'équipe (3 à 4 étudiants)
+Semaine Objectifs Livrables
+1 Cadrage, cahier des charges, répartition
+des rôles, configuration Git
+Dossier de cadrage
+2 Conception C4, modèle de données,
+maquettes Figma
+Diagrammes C4, maquettes
+3 Mise en place du backend,
+authentification, structure des deux
+projets
+Projets initialisés, connexion
+fonctionnelle
+4 Profil, liste et détail des annonces Consultation des annonces
+5 Publication d'annonces avec photos Formulaire de publication complet
+6 Recherche avec filtres, carte et
+géolocalisation
+Recherche et carte
+7 Messagerie temps réel et favoris Chat et favoris
+8 Notifications push, hors-ligne, modération Notifications et panneau
+d'administration
+9 Tests, corrections, optimisation,
+traduction
+Version candidate
+10 Publication sur le store, documentation,
+soutenance
+Application publiée, rapport final
+Rôle Responsabilités
+Chef de projet et backend Planning, Firebase, règles de sécurité, API,
+publication
+Dossier de conception : Application mobile de services immobiliers
+Page 11 of 14
+Pour une équipe de trois, le chef de projet endosse aussi le rôle de testeur. Les rôles
+tournent sur les fonctionnalités transversales (messagerie, carte) pour que chacun
+maîtrise l'ensemble.
+Méthode de travail : Scrum simplifié, sprints de deux semaines, réunion hebdomadaire,
+tableau Kanban (GitHub Projects ou Trello).
+12. Publication sur Google Play et App Store
+Objectif donnant la note maximale. À préparer dès la semaine 8.
+Google Play
+1. Créer un compte développeur (frais uniques d'environ 25 USD).
+2. Générer un fichierAAB signé (Flutter : flutter build appbundle ; React Native :
+./gradlew bundleRelease ).
+3. Préparer la fiche : icône, captures d'écran, description, catégorie, classification du
+contenu.
+4. Fournir la politique de confidentialité (URL publique) et remplir le formulaire de
+sécurité des données.
+5. Passer par les tests internes puis fermés. Les comptes personnels récents doivent
+respecter les exigences de test fermé imposées par Google, à vérifier au moment de
+la soumission.
+6. Soumettre pour examen.
+App Store
+1. Programme Apple Developer (environ 99 USD par an) et un Mac pour la compilation.
+2. Configurer les certificats et profils, puis utiliser TestFlight.
+3. Fournir captures d'écran, description, politique de confidentialité et option de
+suppression de compte dans l'application.
+4. Soumettre pour examen.
+Rôle Responsabilités
+Développeur Flutter Version Flutter de l'application
+Développeur React Native Version React Native de l'application
+Designer UI/UX et testeur Maquettes, identité visuelle, tests, documentation
+Dossier de conception : Application mobile de services immobiliers
+Page 12 of 14
+Remarque : Google Play est la voie la plus accessible pour un projet étudiant (coût plus
+faible, pas de Mac nécessaire). Vérifier les frais et conditions actuels sur les sites officiels
+avant de se lancer.
+13. Risques et solutions
+14. Livrables attendus
+Dossier de conception complet (ce document) avec les diagrammes C4 des niveaux 1
+à 3.
+Maquettes Figma.
+Code source des deux applications sur GitHub (README, instructions d'installation).
+Backend configuré et documenté.
+Rapport de tests.
+Application publiée (lien du store) ou fichierAPK/AAB de démonstration.
+Présentation et démonstration lors de la soutenance.
+Risque Probabilité Impact Mesure
+Retard dû au développement en
+double (Flutter et React Native)
+Élevée Élevé Conception commune, backend
+partagé, priorisation des
+fonctionnalités essentielles
+Dépassement des quotas
+gratuits Firebase
+Moyenne Moyen Pagination, cache, compression
+des images
+Refus de publication par le store Moyenne Élevé Respecter les règles dès le
+début, soumettre tôt
+Difficultés de requêtes
+géographiques
+Moyenne Moyen Geohash ou PostGIS, rayons de
+recherche limités
+Contenu inapproprié ou fausses
+annonces
+Moyenne Moyen Signalement, modération,
+vérification du compte
+Désaccords dans l'équipe Faible Moyen Réunions hebdomadaires, rôles
+clairs, suivi sur Git
+Dossier de conception : Application mobile de services immobiliers
+Page 13 of 14
+15. Conclusion
+Ce dossier pose les bases techniques et organisationnelles du projet : un périmètre
+fonctionnel clair, une architecture décrite avec la méthode C4, un backend mutualisé pour
+tenir le délai de dix semaines, et une feuille de route menant jusqu'à la publication sur les
+stores. La réussite dépendra surtout de la discipline de l'équipe : livrer tôt une version
+minimale fonctionnelle, tester sur de vrais appareils et préparer la publication bien avant
+la dernière semaine.
+Dossier de conception : Application mobile de services immobiliers
+Page 14 of 14

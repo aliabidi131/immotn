@@ -298,17 +298,53 @@ cd android && ./gradlew bundleRelease
 
 ---
 
-## 6. Lancer le projet (à compléter en fin de projet)
+## 6. Lancer le projet
 
 ```bash
-git clone https://github.com/<organisation>/immotn.git
+git clone https://github.com/aliabidi131/immotn.git
 cd immotn
+```
 
-# Flutter
-cd app-flutter && flutter pub get && flutter run
+### Firebase
 
-# React Native
-cd app-react-native && npm install && npx react-native run-android
+Le projet utilise Firebase `immotn-444d2`. Dans la console, activer
+Authentication (e-mail/mot de passe), Cloud Firestore et Storage. Vérifier les
+règles avant tout déploiement :
+
+```powershell
+firebase login
+firebase use immotn-444d2
+firebase deploy --only firestore:rules,firestore:indexes,storage
+```
+
+Le fichier `google-services.json` de React Native est local et ignoré par Git.
+Chaque variante mobile doit être enregistrée comme application distincte dans
+Firebase. Ne publiez pas de fichiers de configuration locaux par inadvertance.
+
+### React Native (Android)
+
+Placez le fichier Android Firebase dans `app-react-native/android/app/`, puis :
+
+```powershell
+Set-Location app-react-native
+npm ci
+npm test -- --runInBand
+npm run lint
+npm run android
+```
+
+### Flutter
+
+Suivez les étapes de [app-flutter/README.md](./app-flutter/README.md) pour
+générer les plateformes natives et enregistrer l’application Flutter auprès de
+Firebase, puis lancez `flutter pub get` et `flutter run`.
+
+### Périmètre du MVP actuel
+
+Les deux applications contiennent l’authentification e-mail/mot de passe, la
+recherche textuelle d’annonces, le filtre vente/location, le détail et la
+publication. Les photos, la carte, les favoris, la messagerie, les notifications,
+la modération et les fonctions hors ligne restent à développer.
 ```
 
 ## 7. Équipe

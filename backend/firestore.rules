@@ -1,0 +1,190 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // latitude et longitude vont ensemble, et doivent être valides si présents.
+    function validCoordinates(data) {
+      return !data.keys().hasAny(['latitude', 'longitude'])
+             || (data.keys().hasAll(['latitude', 'longitude'])
+                 && data.latitude is number
+                 && data.longitude is number
+                 && data.latitude >= -90 && data.latitude <= 90
+                 && data.longitude >= -180 && data.longitude <= 180);
+    }
+
+    function validAddress(data) {
+      return !data.keys().hasAny(['adresse']) || data.adresse is string;
+    }
+
+    match /users/{uid} {
+      // Profils lisibles par tout utilisateur connecté : nom et photo des
+      // correspondants dans la messagerie. Le téléphone n'est affiché
+      // qu'aux utilisateurs connectés (cahier des charges, section 8).
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.id == uid
+                    && request.resource.data.role == 'utilisateur'
+                    && request.resource.data.email == request.auth.token.email
+                    && request.resource.data.keys().hasAll([
+                      'id', 'nom', 'email', 'telephone', 'photoUrl',
+                      'role', 'dateCreation', 'jetonNotification'
+                    ])
+                    && request.resource.data.keys().hasOnly([
+                      'id', 'nom', 'email', 'telephone', 'photoUrl',
+                      'role', 'dateCreation', 'jetonNotification'
+                    ]);
+      allow update: if signedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.id == uid
+                    && (request.resource.data.role == resource.data.role
+                        || (resource.data.role != 'admin'
+                            && request.resource.data.role
+                               in ['utilisateur', 'agence']))
+                    && request.resource.data.email == resource.data.email
+                    && request.resource.data.dateCreation == resource.data.dateCreation
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly([
+                        'nom', 'telephone', 'photoUrl',
+                        'jetonNotification', 'role'
+                      ]);
+      allow delete: if false;
+    }
+
+    match /listings/{listingId} {
+      allow get, list: if resource.data.statut == 'active'
+                       || (signedIn()
+                          && resource.data.proprietaireId == request.auth.uid);
+      allow create: if signedIn()
+                    && request.resource.data.proprietaireId == request.auth.uid
+                    && request.resource.data.statut == 'active'
+                    && request.resource.data.keys().hasAll([
+                      'titre', 'description', 'typeTransaction', 'typeBien',
+                      'prix', 'surface', 'nombrePieces', 'ville', 'photos',
+                      'statut', 'proprietaireId', 'dateCreation'
+                    ])
+                    && request.resource.data.keys().hasOnly([
+                      'titre', 'description', 'typeTransaction', 'typeBien',
+                      'prix', 'surface', 'nombrePieces', 'ville', 'adresse',
+                      'latitude', 'longitude', 'photos',
+                      'statut', 'proprietaireId', 'dateCreation'
+                    ])
+                    && request.resource.data.titre is string
+                    && request.resource.data.description is string
+                    && request.resource.data.typeTransaction in ['vente', 'location']
+                    && request.resource.data.typeBien is string
+                    && request.resource.data.prix is number
+                    && request.resource.data.prix > 0
+                    && request.resource.data.surface is number
+                    && request.resource.data.surface > 0
+                    && request.resource.data.nombrePieces is int
+                    && request.resource.data.nombrePieces >= 0
+                    && request.resource.data.ville is string
+                    && validAddress(request.resource.data)
+                    && validCoordinates(request.resource.data)
+                    && request.resource.data.photos is list
+                    && request.resource.data.photos.size() <= 8
+                    && request.resource.data.dateCreation is timestamp;
+      allow update: if signedIn()
+                    && resource.data.proprietaireId == request.auth.uid
+                    && request.resource.data.proprietaireId == request.auth.uid
+                    && request.resource.data.statut in ['active', 'vendue', 'masquee']
+                    && validAddress(request.resource.data)
+                    && validCoordinates(request.resource.data)
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly([
+                        'titre', 'description', 'typeTransaction', 'typeBien',
+                        'prix', 'surface', 'nombrePieces', 'ville', 'adresse',
+                        'latitude', 'longitude', 'photos', 'statut'
+                      ]);
+      allow delete: if signedIn()
+                    && resource.data.proprietaireId == request.auth.uid;
+    }
+
+    match /favorites/{userId} {
+      allow get: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow delete: if signedIn() && request.auth.uid == userId;
+
+      match /user_favorites/{listingId} {
+        allow read, delete: if signedIn() && request.auth.uid == userId;
+        allow create: if signedIn()
+                      && request.auth.uid == userId
+                      && request.resource.data.keys().hasOnly(['listingId'])
+                      && request.resource.data.listingId == listingId;
+      }
+    }
+
+    // Conversation entre le propriétaire (participants[0]) et l'acheteur
+    // (participants[1]), liée à une annonce. Identifiant : {listingId}_{acheteurUid}.
+    match /conversations/{conversationId} {
+      // resource == null : permet de vérifier l'existence avant création.
+      allow get: if resource == null
+                 || (signedIn() && request.auth.uid in resource.data.participants);
+      allow list: if signedIn() && request.auth.uid in resource.data.participants;
+      allow create: if signedIn()
+                    && request.resource.data.participants.size() == 2
+                    && request.resource.data.participants[1] == request.auth.uid
+                    && request.resource.data.participants[0] != request.auth.uid
+                    && request.resource.data.keys().hasOnly([
+                      'listingId', 'titreAnnonce', 'participants',
+                      'dernierMessage', 'dateMiseAJour'
+                    ])
+                    && request.resource.data.keys().hasAll([
+                      'listingId', 'titreAnnonce', 'participants',
+                      'dernierMessage'
+                    ])
+                    && request.resource.data.titreAnnonce is string
+                    && request.resource.data.dernierMessage == '';
+      allow update: if signedIn()
+                    && request.auth.uid in resource.data.participants
+                    && request.resource.data.participants == resource.data.participants
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['dernierMessage', 'dateMiseAJour']);
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if signedIn()
+                    && request.auth.uid in
+                       get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+        allow create: if signedIn()
+                      && request.resource.data.expediteurId == request.auth.uid
+                      && request.auth.uid in
+                         get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
+                      && request.resource.data.keys().hasOnly(['expediteurId', 'contenu', 'date', 'lu'])
+                      && request.resource.data.contenu is string
+                      && request.resource.data.contenu.size() > 0
+                      && request.resource.data.contenu.size() <= 2000
+                      && request.resource.data.lu == false;
+        allow update, delete: if false;
+      }
+    }
+
+    // Centre de notifications : chaque utilisateur lit les siennes. Un
+    // expéditeur connecté peut en déposer une dans la boîte d'un destinataire.
+    match /notifications/{uid}/items/{notificationId} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn()
+                    && request.resource.data.expediteurId == request.auth.uid
+                    && request.resource.data.type == 'message'
+                    && request.resource.data.keys().hasOnly([
+                      'type', 'titre', 'corps', 'date', 'lu',
+                      'conversationId', 'expediteurId'
+                    ])
+                    && request.resource.data.lu == false;
+      allow update: if signedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['lu']);
+    }
+  }
+}

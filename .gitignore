@@ -11,4 +11,33 @@ dist/
 .idea/
 *.jks
 *.keystore
+google-services.json
+**/GoogleService-Info.plist
 .claude/settings.local.json
+# Android/iOS/Flutter
+.dart_tool/
+build/
+*.keystore
+*.jks
+ios/Pods/
+android/.gradle/
+app-flutter/android/local.properties
+app-flutter/ios/Flutter/Generated.xcconfig
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Node/React Native
+node_modules/
+.expo/
+.env
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+# Local Android SDK paths
+**/local.properties
+
+# Supabase local CLI state
+backend/supabase/.temp/

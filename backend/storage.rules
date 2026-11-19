@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isImageUnderLimit() {
+      return request.resource != null
+             && request.resource.size < 10 * 1024 * 1024
+             && request.resource.contentType.matches('image/.*');
+    }
+
+    match /users/{uid}/profile.jpg {
+      allow read: if signedIn();
+      allow write: if signedIn()
+                   && request.auth.uid == uid
+                   && isImageUnderLimit();
+    }
+
+    match /listings/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if signedIn()
+                   && request.auth.uid == uid
+                   && isImageUnderLimit();
+    }
+  }
+}

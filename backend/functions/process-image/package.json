@@ -1,0 +1,13 @@
+{
+  "name": "process-image",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "supabase": {
+    "function": "process-image"
+  },
+  "dependencies": {
+    "@supabase/functions": "^2.0.0"
+  }
+}

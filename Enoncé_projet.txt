@@ -1,0 +1,21 @@
+Application Mobile
+Services Immobilier
+Objectif
+Créer une application mobile pour la recherche, consultation et publication d'annonces immobilières.
+Utilité
+Rechercher des biens avec filtres (prix, localisation, type)
+Publier des annonces de vente/location
+Localiser les biens sur carte
+Communiquer entre utilisateurs
+Gérer ses favoris et profil
+etc.
+Énoncé
+Développer une application cross-platform permettant aux utilisateurs de s'inscrire, rechercher des biens immobiliers, consulter les détails avec photos, publier des annonces, et communiquer via messagerie intégrée. L'app doit inclure géolocalisation, base de données, et notifications.
+L'application doit être développée en deux versions distinctes :
+Une version avec Flutter
+Une version avec React Native
+Conception
+Utilisez la méthode C4 (modélisation des composants et interactions du système)
+C4 model : https://c4model.com
+IMPORTANT
+Une note finale 20/20 sera attribué à ceux qui arrivent à mettre l'application sur Google Play ou App Store !!!

@@ -1,0 +1,36 @@
+name: immotn
+description: Application mobile ImmoTN de recherche et publication d'annonces immobilières.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+  flutter: '>=3.27.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cloud_firestore: ^7.1.0
+  firebase_auth: ^7.1.0
+  firebase_core: ^5.1.0
+
+  geolocator: ^14.1.2
+  google_sign_in: ^7.2.0
+  firebase_storage: ^14.1.0
+  image_picker: ^1.2.4
+
+  # Supabase Storage for listing images (see backend/functions/process-image)
+  supabase_flutter: ^2.8.0
+  http: ^1.2.0
+  # Flutter helpers
+  flutter_image_compress: 2.5.1
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
